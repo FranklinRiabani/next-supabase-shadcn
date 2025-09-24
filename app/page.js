@@ -1,103 +1,127 @@
-import Image from "next/image";
+'use client'
+import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog' import TablaUsuarios from '@/components/TablaUsuarios'
+import FormularioUsuario from '@/components/FormularioUsuario'
+import DialogoConfirmacion from '@/components/DialogoConfirmacion'
+import {
+  obtenerUsuarios, crearUsuario, actualizarUsuario, eliminarUsuario
+} from '@/lib/usuarios'
+export default function HomePage() {
+  const [usuarios, setUsuarios] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  // Estados para modales
+  const [modalFormulario, setModalFormulario] = useState(false)
+  const [modalConfirmacion, setModalConfirmacion] = useState(false) const [usuarioEditando, setUsuarioEditando] = useState(null)
+  const [usuarioEliminando, setUsuarioEliminando] = useState(null)
 
-export default function Home() {
+
+  // Cargar usuarios al montar el componente 
+  useEffect(() => {
+    cargarUsuarios()
+  }, [])
+
+  const cargarUsuarios = async () => {
+    setIsLoading(true)
+    const { data, error } = await obtenerUsuarios()
+    if (error) {
+      toast.error('Error al cargar usuarios: ' + error)
+    } else {
+      setUsuarios(data || [])
+    }
+    setIsLoading(false)
+  }
+
+  const handleNuevoUsuario = () => {
+    setUsuarioEditando(null)
+    setModalFormulario(true)
+  }
+  const handleEditarUsuario = (usuario) => {
+    setUsuarioEditando(usuario)
+    setModalFormulario(true)
+  }
+  const handleEliminarUsuario = (usuario) => {
+    setUsuarioEliminando(usuario)
+    setModalConfirmacion(true)
+  }
+  const handleSubmitFormulario = async (datosUsuario) => {
+    setIsSubmitting(true)
+    let result
+    if (usuarioEditando) {
+      result = await actualizarUsuario(usuarioEditando.id, datosUsuario)
+    } else {
+      result = await crearUsuario(datosUsuario)
+    }
+
+    if (result.error) {
+      toast.error(
+        usuarioEditando
+          ? 'Error al actualizar usuario: ' + result.error : 'Error al crear usuario: ' + result.error
+      )
+    } else {
+      toast.success(usuarioEditando
+        ? 'Usuario actualizado correctamente'
+        : 'Usuario creado correctamente')
+      setModalFormulario(false)
+      cargarUsuarios()
+    }
+    setIsSubmitting(false)
+  }
+  const handleConfirmarEliminacion = async () => {
+    if (!usuarioEliminando) return
+    setIsSubmitting(true)
+    const result = await eliminarUsuario(usuarioEliminando.id)
+
+    if (result.error) {
+      toast.error('Error al eliminar usuario: ' + result.error)
+    } else {
+      toast.success('Usuario eliminado correctamente')
+      setModalConfirmacion(false)
+      setUsuarioEliminando(null)
+      cargarUsuarios()
+    }
+    setIsSubmitting(false)
+  }
+  const cerrarModalFormulario = () => {
+    if (!isSubmitting) {
+      setModalFormulario(false)
+      setUsuarioEditando(null)
+    }
+  }
+  const cerrarModalConfirmacion = () => {
+    if (!isSubmitting) {
+      setModalConfirmacion(false)
+      setUsuarioEliminando(null)
+    }
+
+  }
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="container mx-auto py-8 px-4">
+      <div className="space-y-6"> <div className="text-center">
+        <h1 className="text-3xl font-bold tracking-tight"> Gestión de Usuarios
+        </h1>
+        <p className="text-muted-foreground">
+          Sistema CRUD con Next.js 15, Supabase y shadcn/ui </p>
+      </div>
+        <TablaUsuarios usuarios={usuarios} onNew={handleNuevoUsuario} onEdit={handleEditarUsuario} onDelete={handleEliminarUsuario} isLoading={isLoading} />
+      </div>
+      {/* Modal de formulario */}
+      <Dialog open={modalFormulario} onOpenChange={cerrarModalFormulario}>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+        <DialogContent className="sm:max-w-md"> <DialogHeader>
+          <DialogTitle>
+            {usuarioEditando ? 'Editar Usuario' : 'Nuevo Usuario'}
+          </DialogTitle> </DialogHeader> <FormularioUsuario
+            usuario={usuarioEditando} onSubmit={handleSubmitFormulario} onCancel={cerrarModalFormulario} isLoading={isSubmitting} /> </DialogContent>
+      </Dialog>
+      {/* Modal de confirmación para eliminar */}
+      <DialogoConfirmacion
+        open={modalConfirmacion} onOpenChange={setModalConfirmacion} onConfirm={handleConfirmarEliminacion} title="Eliminar Usuario"
+        description={usuarioEliminando
+          ? `¿Estás seguro de que deseas eliminar a "${usuarioEliminando.nombre}"? Esta acción no se puede deshacer.`
+          : ''}
+        confirmText="Eliminar" cancelText="Cancelar" isDestructive={true} isLoading={isSubmitting}
+      /> </main>
+  )
 }
