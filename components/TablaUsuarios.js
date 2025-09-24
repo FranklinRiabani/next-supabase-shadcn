@@ -1,6 +1,9 @@
 'use client'
-import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table' import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card' import { Edit, Trash2, UserPlus } from 'lucide-react'
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Edit, Trash2, UserPlus } from 'lucide-react'
+
 export default function TablaUsuarios({ usuarios, onEdit, onDelete, onNew, isLoading = false }) {
     if (isLoading) {
         return (<Card>

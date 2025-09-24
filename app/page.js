@@ -1,19 +1,23 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { toast } from 'sonner'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog' import TablaUsuarios from '@/components/TablaUsuarios'
-import FormularioUsuario from '@/components/FormularioUsuario'
-import DialogoConfirmacion from '@/components/DialogoConfirmacion'
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import TablaUsuarios from '@/components/TablaUsuarios';
+import FormularioUsuario from '@/components/FormularioUsuario';
+import DialogoConfirmacion from '@/components/DialogoConfirmacion';
 import {
   obtenerUsuarios, crearUsuario, actualizarUsuario, eliminarUsuario
-} from '@/lib/usuarios'
+} from '@/lib/usuarios';
+
+
 export default function HomePage() {
   const [usuarios, setUsuarios] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   // Estados para modales
   const [modalFormulario, setModalFormulario] = useState(false)
-  const [modalConfirmacion, setModalConfirmacion] = useState(false) const [usuarioEditando, setUsuarioEditando] = useState(null)
+  const [modalConfirmacion, setModalConfirmacion] = useState(false)
+  const [usuarioEditando, setUsuarioEditando] = useState(null)
   const [usuarioEliminando, setUsuarioEliminando] = useState(null)
 
 
